@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Чтение флагов
+
+require_user=0
+require_host=0
+require_ssh_key_file=0
+
+usage() {
+    echo "Usage: $0 
+    [-u user] 
+    [-h host] 
+    [-f ssh_key_file]"
+    exit 1
+}
+
+OPTIND=1 # Сброс OPTIND для корректной работы в разных окружениях
+
+while getopts ":u:h:f:" opt; do
+    case $opt in
+        u)
+            user=$OPTARG
+            require_user=1
+            ;;
+        h)
+            host=$OPTARG
+            require_host=1
+            ;;
+        f)
+            ssh_key_file=$OPTARG
+            require_ssh_key_file=1
+            ;;        
+        \?)
+            echo "Error: Invalid option -$OPTARG" >&2
+            usage
+            ;;
+        :)
+            echo "Error: Option -$OPTARG requires an argument" >&2
+            usage
+            ;;
+    esac
+done
+
+# Проверка, если не было передано нни одного флага
+
+if [ $OPTIND -eq 1 ]; then
+    echo "Error: Requires at least one option" >&2
+    usage
+fi
+
+# Проверка на передачу обязательных флагов
+
+if [[ $require_user -eq 0 ]]; then
+    echo "Error: Option -u is required" >&2
+    usage
+fi
+
+if [[ $require_host -eq 0 ]]; then
+    echo "Error: Option -h is required" >&2
+    usage
+fi
+
+if [[ $require_ssh_key_file -eq 0 ]]; then
+    echo "Error: Option -f is required" >&2
+    usage
+fi
+
+ssh $user@$host -i "~/.ssh/$ssh_key_file"
